@@ -231,6 +231,31 @@ class SerialReadTests(DaemonTestCase):
         decode = self.read(message + b"\x6c")
         decode.assert_called_once_with(message)
 
+    def test_stops_after_four_extra_bytes_without_trailer(self):
+        message = packet(frame())[:-3] + b"\x01\x02\x03\x04\x05\x06\x07"
+        decode = self.read(message + b"\x08")
+        decode.assert_called_once_with(message)
+
+    def test_read_error_is_not_fatal(self):
+        link = MagicMock()
+        link.read.side_effect = OSError("device reports readiness to read but returned no data")
+        with patch.object(edisiod, "jeedom_serial", link), \
+                patch.object(edisiod, "decodePacket") as decode, \
+                patch.object(edisiod, "shutdown") as shutdown:
+            edisiod.read_edisio()
+        decode.assert_not_called()
+        shutdown.assert_not_called()
+
+    def test_input_output_error_stops_the_daemon(self):
+        link = MagicMock()
+        link.read.side_effect = OSError(5, "Input/output error")
+        with patch.object(edisiod, "jeedom_serial", link), \
+                patch.object(edisiod, "decodePacket") as decode, \
+                patch.object(edisiod, "shutdown") as shutdown:
+            edisiod.read_edisio()
+        shutdown.assert_called_once_with()
+        decode.assert_not_called()
+
     def test_ignores_bytes_outside_a_frame(self):
         self.read(b"\x00").assert_not_called()
         self.read(b"").assert_not_called()
