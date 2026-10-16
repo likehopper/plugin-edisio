@@ -1,6 +1,7 @@
 import binascii
 import importlib
 import importlib.util
+import io
 import json
 import logging
 import os
@@ -121,6 +122,33 @@ class ArgumentTests(unittest.TestCase):
     def test_zero_cycle_is_kept(self):
         # cycle <= 0 makes jeedom_com send every change immediately
         self.assertEqual(edisiod.parse_args(["--cycle", "0"]).cycle, 0)
+
+
+class ApikeyRedactionTests(unittest.TestCase):
+    def capture(self, apikey):
+        stream = io.StringIO()
+        handler = logging.StreamHandler(stream)
+        handler.addFilter(edisiod.ApikeyRedactor(apikey))
+        logger = logging.getLogger("urllib3.connectionpool.test")
+        logger.addHandler(handler)
+        logger.propagate = False
+        logging.disable(logging.NOTSET)
+        try:
+            logger.warning('%s "%s %s HTTP/1.1"', "http://127.0.0.1:80", "POST", "/cb?apikey=s3cr3t")
+            logger.warning("Message received in socket {'apikey': 's3cr3t', 'cmd': 'add'}")
+        finally:
+            logging.disable(logging.CRITICAL)
+            logger.removeHandler(handler)
+        return stream.getvalue()
+
+    def test_apikey_is_masked_in_formatted_and_plain_messages(self):
+        output = self.capture("s3cr3t")
+        self.assertNotIn("s3cr3t", output)
+        self.assertEqual(output.count("***"), 2)
+        self.assertIn('"POST /cb?apikey=*** HTTP/1.1"', output)
+
+    def test_empty_apikey_changes_nothing(self):
+        self.assertEqual(self.capture("").count("s3cr3t"), 2)
 
 
 class FrameValidationTests(unittest.TestCase):

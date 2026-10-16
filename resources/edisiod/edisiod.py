@@ -360,6 +360,27 @@ _prevTime = time.monotonic()
 _timerTime = time.monotonic()
 
 
+class ApikeyRedactor(logging.Filter):
+    """Replace the apikey in every log line, including third-party ones (urllib3 logs the callback URL)."""
+
+    def __init__(self, apikey):
+        super().__init__()
+        self.apikey = apikey
+
+    def filter(self, record):
+        if self.apikey:
+            message = record.getMessage()
+            if self.apikey in message:
+                record.msg = message.replace(self.apikey, '***')
+                record.args = ()
+        return True
+
+
+def redact_apikey_in_logs(apikey):
+    for handler in logging.getLogger().handlers:
+        handler.addFilter(ApikeyRedactor(apikey))
+
+
 def read_apikey_file(path):
     """Read the apikey written by Jeedom, then delete the file: the key only stays in memory."""
     with open(path) as handle:
@@ -404,6 +425,7 @@ def main():
         except OSError as e:
             logging.error("Cannot read apikey file: %s", e)
             shutdown()
+    redact_apikey_in_logs(_apikey)
 
     logging.info('Start edisiod')
     logging.info('Log level : %s', _log_level)
