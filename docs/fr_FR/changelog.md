@@ -6,6 +6,7 @@
 
 # 16/10/2026
 
+- La clé API n'apparaît plus dans la liste des processus (ps) ni dans les logs du démon
 - La liste « Bannir les IDs » de la configuration est enfin prise en compte (espaces, retours à la ligne ou virgules comme séparateurs)
 - Message d'erreur quand une commande ou l'inclusion échoue parce que le démon ne répond pas
 - Démon : une erreur de lecture série n'arrête plus le démon
