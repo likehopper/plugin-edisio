@@ -17,7 +17,6 @@ import logging
 import sys
 import os
 import time
-import datetime
 import argparse
 import binascii
 from threading import Thread, Event
@@ -102,9 +101,9 @@ def sendDimOff(key, action):
 
 def decodePacket(message):
     global _prevMessage
-    global _prevDatetime
-    global _timerDatetime
-    unixtime_utc_check = datetime.datetime.utcnow()
+    global _prevTime
+    global _timerTime
+    now = time.monotonic()
     logging.debug("decodePacket : Incoming message (%s)", jeedom_utils.ByteToHex(message))
     if not test_edisio(jeedom_utils.ByteToHex(message)):
         logging.error("The incoming message is invalid (%s)", jeedom_utils.ByteToHex(message))
@@ -126,11 +125,11 @@ def decodePacket(message):
     if CMD == '07' and MID == '01':
         dimmingOff_thread = DimOff_threads.get(PID + BID)
         if dimmingOff_thread is not None:
-            if clean_message == _prevMessage and unixtime_utc_check < (_timerDatetime + datetime.timedelta(milliseconds=800)):
+            if clean_message == _prevMessage and now < _timerTime + 0.8:
                 logging.debug("Too soon to refresh timer")
             else:
                 logging.debug("Thread exists resetting")
-                _timerDatetime = unixtime_utc_check
+                _timerTime = now
                 dimmingOff_thread.reset(1)
         else:
             logging.debug("Thread not exists creating")
@@ -138,16 +137,16 @@ def decodePacket(message):
             dimOff = {'id': PID, 'battery': str(BLDIM), 'mid': MID, 'bt': BID, 'value': 'down'}
             dimmingOff = TimerReset(1, function=sendDimOff, args=(PID + BID, dimOff))
             DimOff_threads[PID + BID] = dimmingOff
-            _timerDatetime = unixtime_utc_check
+            _timerTime = now
             dimmingOff.start()
-        if clean_message == _prevMessage and unixtime_utc_check < (_prevDatetime + datetime.timedelta(milliseconds=4000)):
+        if clean_message == _prevMessage and now < _prevTime + 4:
             return
-    elif clean_message == _prevMessage and unixtime_utc_check < (_prevDatetime + datetime.timedelta(milliseconds=200)):
+    elif clean_message == _prevMessage and now < _prevTime + 0.2:
         logging.debug("Message already decode, ignore")
         return
 
     _prevMessage = clean_message
-    _prevDatetime = unixtime_utc_check
+    _prevTime = now
     BL = int((int(BL, 16) / 3.3) * 10)
     action = {'id': PID, 'battery': str(BL), 'mid': MID, 'raw': raw_message}
     key = PID + MID + CMD + BID
@@ -356,8 +355,9 @@ _pidfile = ''
 _serial_rate = 9600
 _serial_timeout = 9
 _prevMessage = ''
-_prevDatetime = datetime.datetime.utcnow()
-_timerDatetime = datetime.datetime.utcnow()
+# time.monotonic() of the last decoded frame and of the last dimmer timer reset
+_prevTime = time.monotonic()
+_timerTime = time.monotonic()
 
 
 def parse_args(argv=None):

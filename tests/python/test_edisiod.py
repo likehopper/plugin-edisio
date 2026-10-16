@@ -203,6 +203,14 @@ class DecodePacketTests(DaemonTestCase):
         edisiod.decodePacket(message)
         self.assertEqual(len(self.sent()), 1)
 
+    def test_repeated_frame_is_decoded_again_after_200_ms(self):
+        message = packet(frame())
+        with patch.object(edisiod.time, "monotonic", side_effect=[100.0, 100.1, 100.3]):
+            edisiod.decodePacket(message)
+            edisiod.decodePacket(message)
+            edisiod.decodePacket(message)
+        self.assertEqual(len(self.sent()), 2)
+
     def test_invalid_frame_is_dropped(self):
         edisiod.decodePacket(packet(frame()[:-2] + "0B"))
         self.com.add_changes.assert_not_called()
@@ -227,7 +235,7 @@ class DimmerReleaseTests(DaemonTestCase):
     def test_long_press_repeat_resets_existing_timer(self):
         timer = MagicMock()
         edisiod.DimOff_threads[PID + "03"] = timer
-        edisiod._timerDatetime = edisiod._timerDatetime.min
+        edisiod._timerTime = edisiod.time.monotonic() - 10
         edisiod.decodePacket(packet(frame(mid="01", cmd="07", bid="03")))
         timer.reset.assert_called_once_with(1)
 

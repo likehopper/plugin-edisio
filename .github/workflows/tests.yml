@@ -34,4 +34,4 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - name: Run Python tests
-        run: python -m unittest discover -s tests/python -v
+        run: python -W error::DeprecationWarning -m unittest discover -s tests/python -v
