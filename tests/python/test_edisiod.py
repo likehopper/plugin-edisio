@@ -236,6 +236,26 @@ class SerialReadTests(DaemonTestCase):
         self.read(b"").assert_not_called()
 
 
+class JeedomSerialTests(unittest.TestCase):
+    def serial(self, port):
+        link = edisiod.jeedom_serial(device="/dev/null", rate=9600)
+        link.port = port
+        return link
+
+    def test_readbytes_reads_the_requested_length_at_once(self):
+        port = MagicMock()
+        port.read.return_value = b"\x01\x02\x03"
+        self.assertEqual(self.serial(port).readbytes(3), b"\x01\x02\x03")
+        port.read.assert_called_once_with(3)
+
+    def test_readbytes_returns_empty_bytes_on_error(self):
+        for error in (OSError("boom"), IOError("boom")):
+            with self.subTest(error=type(error).__name__):
+                port = MagicMock()
+                port.read.side_effect = error
+                self.assertEqual(self.serial(port).readbytes(3), b"")
+
+
 class SerialWriteTests(DaemonTestCase):
     def test_valid_frame_is_written_three_times(self):
         fake = FakeSerial()
