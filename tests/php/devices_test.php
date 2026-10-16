@@ -49,6 +49,7 @@ foreach (glob($devicesDir . '/*', GLOB_ONLYDIR) as $dir) {
   check(array_keys($content) == array($code), $code . ': JSON key matches the folder name');
   $codes[] = $code;
   $device = reset($content);
+  check(edisio_device_definition($devicesDir, $code) === $device, $code . ': edisio_device_definition() returns the definition');
   check(isset($device['name']) && $device['name'] != '', $code . ': has a name');
   $logicalIds = array();
   foreach (isset($device['commands']) ? $device['commands'] : array() as $command) {
@@ -77,6 +78,9 @@ foreach (glob($devicesDir . '/*', GLOB_ONLYDIR) as $dir) {
   }
 }
 check(count($codes) > 0, 'device definitions found');
+foreach (array('', 'FF', '../01', '01/../01', '01.json') as $invalid) {
+  check(edisio_device_definition($devicesDir, $invalid) === array(), 'edisio_device_definition() rejects ' . json_encode($invalid));
+}
 
 if ($failures > 0) {
   fwrite(STDERR, $failures . ' failure(s)' . PHP_EOL);

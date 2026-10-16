@@ -50,3 +50,16 @@ function edisio_build_frames($_template, $_id, $_group, $_subType, $_options = a
 	}
 	return explode('&&', trim($value, '$'));
 }
+
+/**
+ * Définition d'un modèle, lue dans <$_devicesDir>/<code>/<code>.json.
+ * Retourne array() si le code est invalide ou inconnu.
+ */
+function edisio_device_definition($_devicesDir, $_device) {
+	if (!preg_match('/^[0-9A-Fa-f]+$/', (string) $_device)) {
+		return array();
+	}
+	$file = $_devicesDir . '/' . $_device . '/' . $_device . '.json';
+	$content = file_exists($file) ? json_decode(file_get_contents($file), true) : null;
+	return (is_array($content) && isset($content[$_device]) && is_array($content[$_device])) ? $content[$_device] : array();
+}
