@@ -309,39 +309,32 @@ def test_edisio(message):
 
 
 def read_edisio():
-    message = None
     try:
         byte = jeedom_serial.read()
     except Exception as e:
-        logging.error("Error in read_edisio: " + str(e))
+        logging.error("Error in read_edisio: %s", e)
         if str(e) == '[Errno 5] Input/output error':
-            logging.error("Exit 1 because this exeption is fatal")
+            logging.error("Exit 1 because this exception is fatal")
             shutdown()
+        return
 
+    if byte is None or jeedom_utils.ByteToHex(byte) != '6C':
+        return
+
+    message = byte
     try:
-        if str(jeedom_utils.ByteToHex(byte)) == '6C':
-            logging.debug("read_edisio : 15 bytes after " +
-                          str(jeedom_utils.ByteToHex(byte)))
-            others_bytes = jeedom_serial.readbytes(15)
-            logging.debug("read_edisio : others bytes are " +
-                          str(jeedom_utils.ByteToHex(others_bytes)))
-            message = b'' + byte + others_bytes
-            logging.debug("Message: " + str(jeedom_utils.ByteToHex(message)))
-            logging.debug("Test last bytes : " +
-                          str(jeedom_utils.ByteToHex([message[-3], message[-2], message[-1]])))
-            if str(jeedom_utils.ByteToHex([message[-3], message[-2], message[-1]])) != '64 0D 0A':
-                message += jeedom_serial.readbytes(1)
-            if str(jeedom_utils.ByteToHex([message[-3], message[-2], message[-1]])) != '64 0D 0A':
-                message += jeedom_serial.readbytes(1)
-            if str(jeedom_utils.ByteToHex([message[-3], message[-2], message[-1]])) != '64 0D 0A':
-                message += jeedom_serial.readbytes(1)
-            if str(jeedom_utils.ByteToHex([message[-3], message[-2], message[-1]])) != '64 0D 0A':
-                message += jeedom_serial.readbytes(1)
-            logging.debug("Message: " + str(jeedom_utils.ByteToHex(message)))
-            decodePacket(message)
+        logging.debug("read_edisio : 15 bytes after %s", jeedom_utils.ByteToHex(byte))
+        message += jeedom_serial.readbytes(15)
+        # A frame is at least 16 bytes; frames with data are up to 4 bytes longer:
+        # read one more byte at a time until the 64 0D 0A trailer.
+        for _ in range(4):
+            if jeedom_utils.ByteToHex(message[-3:]) == '64 0D 0A':
+                break
+            message += jeedom_serial.readbytes(1)
+        logging.debug("Message: %s", jeedom_utils.ByteToHex(message))
+        decodePacket(message)
     except OSError as e:
-        logging.error("Error in read_edisio on decode message : " +
-                      str(jeedom_utils.ByteToHex(message))+" => "+str(e))
+        logging.error("Error in read_edisio on decode message : %s => %s", jeedom_utils.ByteToHex(message), e)
 
 # ----------------------------------------------------------------------------
 
