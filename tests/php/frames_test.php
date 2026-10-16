@@ -27,3 +27,5 @@ assertFrames(array('6C76630A1B2C3D01051E01000432640D0A'), edisio_build_frames($s
 assertFrames(array('6C76630A1B2C3D01051E01000405640D0A'), edisio_build_frames($slider, $id, 1, 'slider', array('slider' => '5')), 'slider value is padded to two digits');
 assertFrames(array('6C76630A1B2C3D01051E01000464640D0A'), edisio_build_frames($slider, $id, 1, 'slider', array('slider' => 100)), 'slider 100 is 64');
 assertFrames(array('6C76630A1B2C3D01051E010002640D0A'), edisio_build_frames($slider, $id, 1, 'slider', array('slider' => 0)), 'slider 0 sends the off command (02) instead of level 00');
+assertFrames(array('6C76630A1B2C3D01051E01000464640D0A'), edisio_build_frames($slider, $id, 1, 'slider', array('slider' => 300)), 'slider above 100 is capped');
+assertFrames(array('6C76630A1B2C3D01051E010002640D0A'), edisio_build_frames($slider, $id, 1, 'slider', array('slider' => -5)), 'negative slider is off');
