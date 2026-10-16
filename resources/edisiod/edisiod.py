@@ -360,13 +360,25 @@ _prevTime = time.monotonic()
 _timerTime = time.monotonic()
 
 
+def read_apikey_file(path):
+    """Read the apikey written by Jeedom, then delete the file: the key only stays in memory."""
+    with open(path) as handle:
+        apikey = handle.read().strip()
+    try:
+        os.remove(path)
+    except OSError as e:
+        logging.warning("Cannot delete apikey file %s: %s", path, e)
+    return apikey
+
+
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(description='Edisio Daemon for Jeedom plugin')
     parser.add_argument("--device", help="Device", type=str, default='auto')
     parser.add_argument("--socketport", help="Socketport for server", type=int, default=55005)
     parser.add_argument("--loglevel", help="Log Level for the daemon", type=str, default='error')
     parser.add_argument("--callback", help="Callback", type=str, default='')
-    parser.add_argument("--apikey", help="Apikey", type=str, default='')
+    parser.add_argument("--apikey", help="Apikey (visible in ps: prefer --apikeyfile)", type=str, default='')
+    parser.add_argument("--apikeyfile", help="File holding the apikey, deleted once read", type=str, default='')
     parser.add_argument("--cycle", help="Cycle to send event", type=float, default=0.3)
     parser.add_argument("--pid", help="Pid file", type=str, default='/tmp/edisiod.pid')
     return parser.parse_args(argv)
@@ -386,6 +398,12 @@ def main():
     _cycle = args.cycle
 
     jeedom_utils.set_log_level(_log_level)
+    if args.apikeyfile:
+        try:
+            _apikey = read_apikey_file(args.apikeyfile)
+        except OSError as e:
+            logging.error("Cannot read apikey file: %s", e)
+            shutdown()
 
     logging.info('Start edisiod')
     logging.info('Log level : %s', _log_level)
