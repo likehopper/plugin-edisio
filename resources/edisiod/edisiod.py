@@ -349,49 +349,41 @@ def shutdown():
 # ----------------------------------------------------------------------------
 
 
-_log_level = "error"
-_socket_port = 55005
 _socket_host = '127.0.0.1'
-_device = 'auto'
-_pidfile = '/tmp/edisiod.pid'
+# Set by main(), read by read_socket() and shutdown()
 _apikey = ''
-_callback = ''
+_pidfile = ''
 _serial_rate = 9600
 _serial_timeout = 9
-_cycle = 0.3
 _prevMessage = ''
 _prevDatetime = datetime.datetime.utcnow()
 _timerDatetime = datetime.datetime.utcnow()
 
 
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(description='Edisio Daemon for Jeedom plugin')
+    parser.add_argument("--device", help="Device", type=str, default='auto')
+    parser.add_argument("--socketport", help="Socketport for server", type=int, default=55005)
+    parser.add_argument("--loglevel", help="Log Level for the daemon", type=str, default='error')
+    parser.add_argument("--callback", help="Callback", type=str, default='')
+    parser.add_argument("--apikey", help="Apikey", type=str, default='')
+    parser.add_argument("--cycle", help="Cycle to send event", type=float, default=0.3)
+    parser.add_argument("--pid", help="Pid file", type=str, default='/tmp/edisiod.pid')
+    return parser.parse_args(argv)
+
+
 def main():
-    global _device, _socket_port, _log_level, _callback, _apikey, _pidfile, _cycle
+    global _apikey, _pidfile
     global jeedom_serial, jeedom_socket
 
-    parser = argparse.ArgumentParser(description='Edisio Daemon for Jeedom plugin')
-    parser.add_argument("--device", help="Device", type=str)
-    parser.add_argument("--socketport", help="Socketport for server", type=int)
-    parser.add_argument("--loglevel", help="Log Level for the daemon", type=str)
-    parser.add_argument("--callback", help="Callback", type=str)
-    parser.add_argument("--apikey", help="Apikey", type=str)
-    parser.add_argument("--cycle", help="Cycle to send event", type=float)
-    parser.add_argument("--pid", help="Pid file", type=str)
-    args = parser.parse_args()
-
-    if args.device:
-        _device = args.device
-    if args.socketport:
-        _socket_port = args.socketport
-    if args.loglevel:
-        _log_level = args.loglevel
-    if args.callback:
-        _callback = args.callback
-    if args.apikey:
-        _apikey = args.apikey
-    if args.pid:
-        _pidfile = args.pid
-    if args.cycle:
-        _cycle = args.cycle
+    args = parse_args()
+    _device = args.device
+    _socket_port = args.socketport
+    _log_level = args.loglevel
+    _callback = args.callback
+    _apikey = args.apikey
+    _pidfile = args.pid
+    _cycle = args.cycle
 
     jeedom_utils.set_log_level(_log_level)
 
