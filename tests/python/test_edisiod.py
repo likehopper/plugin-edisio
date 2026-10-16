@@ -1,5 +1,6 @@
 import binascii
 import importlib
+import importlib.util
 import json
 import logging
 import sys
@@ -79,6 +80,15 @@ class DaemonTestCase(unittest.TestCase):
 
     def sent(self):
         return [call.args for call in self.com.add_changes.call_args_list]
+
+
+class GlobalsTests(unittest.TestCase):
+    def test_daemon_starts_outside_include_mode(self):
+        spec = importlib.util.spec_from_file_location("fresh_globals", DAEMON_DIR / "globals.py")
+        fresh = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(fresh)
+        self.assertIs(fresh.INCLUDE_MODE, False)
+        self.assertEqual(fresh.KNOWN_DEVICES, {})
 
 
 class FrameValidationTests(unittest.TestCase):
