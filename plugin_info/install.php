@@ -30,6 +30,9 @@ function edisio_update() {
 	}
 	foreach (eqLogic::byType('edisio') as $eqLogic) {
 		$device = edisio::devicesParameters($eqLogic->getConfiguration('device'));
+		if (!isset($device['commands']) || !is_array($device['commands'])) {
+			continue;
+		}
 		foreach ($device['commands'] as $command) {
 			$cmd = $eqLogic->getCmd(null, $command['logicalId']);
 			if (is_object($cmd) && $cmd->getDisplay('generic_type') == '' && isset($command['display']['generic_type'])) {
