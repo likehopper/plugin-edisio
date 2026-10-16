@@ -152,7 +152,15 @@ class edisio extends eqLogic {
 		$cmd .= ' --loglevel ' . log::convertLogLevel(log::getLogLevel('edisio'));
 		$cmd .= ' --socketport ' . config::byKey('socketport', 'edisio');
 		$cmd .= ' --callback ' . network::getNetworkAccess('internal', 'http:127.0.0.1:port:comp') . '/plugins/edisio/core/php/jeeEdisio.php';
-		$cmd .= ' --apikey ' . jeedom::getApiKey('edisio');
+		/* La clé API passe par un fichier lisible par www-data seul : sur la ligne de commande, elle serait visible de tous les comptes (ps). */
+		$apikeyFile = jeedom::getTmpFolder('edisio') . '/apikey';
+		$umask = umask(0077);
+		$written = file_put_contents($apikeyFile, jeedom::getApiKey('edisio'));
+		umask($umask);
+		if ($written === false || !chmod($apikeyFile, 0600)) {
+			throw new Exception(__('Impossible d\'écrire le fichier de clé API du démon', __FILE__) . ' : ' . $apikeyFile);
+		}
+		$cmd .= ' --apikeyfile ' . escapeshellarg($apikeyFile);
 		$cmd .= ' --cycle ' . config::byKey('cycle', 'edisio');
 		$cmd .= ' --pid ' . jeedom::getTmpFolder('edisio') . '/deamon.pid';
 		log::add('edisio', 'info', 'Lancement démon edisiod');
