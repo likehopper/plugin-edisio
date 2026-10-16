@@ -6,6 +6,7 @@
  */
 
 $root = dirname(__DIR__, 2);
+require_once $root . '/core/php/edisio.inc.php';
 $failures = 0;
 
 function check($condition, $message) {
@@ -68,8 +69,9 @@ foreach (glob($devicesDir . '/*', GLOB_ONLYDIR) as $dir) {
     if (!isset($command['logicalId'])) {
       continue;
     }
-    $value = str_replace(array('#ID#', '#GROUP#', '#slider#', '#color#'), array('0A1B2C3D', '01', '32', '000000'), $command['logicalId']);
-    foreach (explode('&&', trim($value, '$')) as $frame) {
+    $group = isset($command['configuration']['group']) ? $command['configuration']['group'] : '01';
+    $options = array('slider' => 50, 'color' => '000000');
+    foreach (edisio_build_frames($command['logicalId'], '0A1B2C3D', $group, $command['subtype'], $options) as $frame) {
       check(isValidFrame($frame), $name . ': valid frame ' . $frame);
     }
   }
