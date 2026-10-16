@@ -39,10 +39,10 @@ $eqLogics = edisio::byType('edisio');
 			$alternateImg = $eqLogic->getConfiguration('iconModel');
 			if (file_exists(__DIR__ . '/../../core/config/devices/' . $alternateImg . '.jpg')) {
 				$img = '<img class="lazy" src="plugins/edisio/core/config/devices/' . $alternateImg . '.jpg" height="65" width="55" />';
-			} elseif (file_exists(__DIR__ . '/../../core/config/devices/' . $eqLogic->getConfiguration('device') . '.jpg')) {
-				$img = '<img class="lazy" src="plugins/edisio/core/config/devices/' . $eqLogic->getConfiguration('device') . '.jpg" height="65" width="55" />';
+			} elseif (file_exists(__DIR__ . '/../../core/config/devices/' . $eqLogic->getConfiguration('device') . '/' . $eqLogic->getConfiguration('device') . '.jpg')) {
+				$img = '<img class="lazy" src="plugins/edisio/core/config/devices/' . $eqLogic->getConfiguration('device') . '/' . $eqLogic->getConfiguration('device') . '.jpg" height="65" width="55" />';
 			} else {
-				$img = '<img class="lazy" src="plugins/edisio/doc/images/edisio_icon.png" height="65" width="55" />';
+				$img = '<img class="lazy" src="plugins/edisio/plugin_info/edisio_icon.png" height="65" width="55" />';
 			}
 			echo '<tr><td>' . $img . '</td><td><a href="' . $eqLogic->getLinkToConfiguration() . '" style="text-decoration: none;">' . $eqLogic->getHumanName(true) . '</a></td>';
 			echo '<td><span class="label label-info" style="font-size : 1em; cursor : default;">' . $eqLogic->getId() . '</span></td>';
