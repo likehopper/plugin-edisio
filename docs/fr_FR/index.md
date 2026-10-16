@@ -15,7 +15,7 @@ Après téléchargement du plugin, il vous suffit de l’activer et de mettre le
 -   **Dépendances** : cette partie vous donne le statut des dépendances, si elles ne sont pas OK vous pouvez soit les lancer à la main soit attendre 5min, Jeedom les lancera de lui même.
 -   **Démon** : cette partie vous donne le statut du démon (aussi bien en local qu’en déporté), si il n’est pas OK vous pouvez soit le lancer à la main soit attendre 5min, Jeedom le lancera de lui même.
 -   **Configuration** : cette partie permet de configurer les paramètres généraux du plugin.
-    -   *Bannir les IDs suivants* : permet de donner une liste d’identifiants edisio à Jeedom pour que celui-ci ne crée pas les équipements correspondants. Les identifiants doivent être séparés par des espaces. Exemple : "1356AD87 DB54AF".
+    -   *Bannir les IDs suivants* : permet de donner une liste d’identifiants edisio à Jeedom pour que celui-ci ne crée pas les équipements correspondants. Les identifiants sont séparés par des espaces, des virgules ou des retours à la ligne, sans tenir compte des majuscules. Exemple : "1356AD87 DB54AF".
 -   **Démon local** : paramètres de configuration locale (ou déportée, en fonction de l’intitulé) du démon.
     -   *Port edisio* : le port USB sur lequel votre interface edisio est connectée.
         > **Tip**
@@ -101,6 +101,12 @@ En haut de votre page de configuration pour l’équipement, vous avez 3 boutons
 ## Inclusion d’un équipement edisio
 
 L’ajout d’un équipement Edisio est très simple, il faut juste passer en mode inclusion et attendre que l’équipement envoi un message, quand ca sera le cas Jeedom vous indiquera qu’il a inclus un nouvel équipement et creera celui-ci automatiquement.
+
+# Dépannage
+
+-   *« Le démon Edisio ne répond pas, vérifiez qu’il est démarré »* lors d’une commande ou du passage en inclusion : le démon est arrêté ou en cours de redémarrage. Vérifiez son statut dans la configuration du plugin et consultez les logs `edisio` et `edisio_daemon`.
+-   Aucun module ne remonte : vérifiez le port de la clé (ou "Auto"), puis passez le log en debug et redémarrez le démon ; chaque trame reçue y apparaît (`decodePacket : Incoming message`).
+-   Un module banni apparaît quand même : vérifiez que son identifiant figure bien dans *Bannir les IDs*, puis supprimez l’équipement déjà créé.
 
 # Liste des modules compatible
 
