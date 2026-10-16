@@ -16,6 +16,7 @@
  */
 /* * ***************************Includes********************************* */
 require_once __DIR__ . '/../../../../core/php/core.inc.php';
+require_once __DIR__ . '/../php/edisio.inc.php';
 class edisio extends eqLogic {
 	/*     * *************************Attributs****************************** */
 	/*     * ***********************Methode static*************************** */
@@ -351,29 +352,7 @@ class edisioCmd extends cmd {
 		}
 		$eqLogic = $this->getEqLogic();
 		$logicalId = ($this->getConfiguration('id') != '') ? $this->getConfiguration('id') : $eqLogic->getLogicalId();
-		$value = trim(str_replace("#ID#", $logicalId, $this->getLogicalId()));
-		$group = $this->getConfiguration('group', '01');
-		if (strlen($group) == 1) {
-			$group = '0' . $group;
-		}
-		$value = trim(str_replace("#GROUP#", $group, $value));
-		switch ($this->getSubType()) {
-			case 'slider':
-				$hexvalue = strtoupper(dechex(intval($_options['slider'])));
-				if (strlen($hexvalue) < 2) {
-					$hexvalue = '0' . $hexvalue;
-				}
-				if ($hexvalue != '00') {
-					$value = str_replace('#slider#', $hexvalue, $value);
-				} else {
-					$value = str_replace('04#slider#', '02', $value);
-				}
-				break;
-			case 'color':
-				$value = str_replace('#color#', $_options['color'], $value);
-				break;
-		}
-		$values = explode('&&', trim($value, '$'));
+		$values = edisio_build_frames($this->getLogicalId(), $logicalId, $this->getConfiguration('group', '01'), $this->getSubType(), $_options);
 		if (!edisio::sendToDeamon(array('apikey' => jeedom::getApiKey('edisio'), 'cmd' => 'send', 'data' => $values))) {
 			throw new Exception(__('Le démon Edisio ne répond pas, vérifiez qu\'il est démarré', __FILE__));
 		}
