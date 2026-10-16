@@ -1,0 +1,37 @@
+on:
+  push:
+  pull_request:
+
+name: 'Tests Edisio'
+
+jobs:
+  php:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Debian 11 (PHP 7.4), Debian 12 (PHP 8.2)
+        php: ['7.4', '8.2']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - name: Lint PHP
+        run: find . -name '*.php' -not -path './resources/python_venv/*' -print0 | xargs -0 -n1 php -l
+      - name: Run PHP tests
+        run: for test in tests/php/*_test.php; do php "$test" || exit 1; done
+
+  python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Debian 11 (3.9), Debian 12 (3.11), Debian 13 (3.13)
+        python: ['3.9', '3.11', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Run Python tests
+        run: python -m unittest discover -s tests/python -v
