@@ -32,7 +32,9 @@ function edisio_build_frames($_template, $_id, $_group, $_subType, $_options = a
 	$value = trim(str_replace('#GROUP#', $group, $value));
 	switch ($_subType) {
 		case 'slider':
-			$hexvalue = strtoupper(dechex(intval($_options['slider'])));
+			/* Niveau 0..100 : hors bornes, dechex() produisait une trame invalide (3 chiffres, ou négatif). */
+			$level = max(0, min(100, intval($_options['slider'])));
+			$hexvalue = strtoupper(dechex($level));
 			if (strlen($hexvalue) < 2) {
 				$hexvalue = '0' . $hexvalue;
 			}
