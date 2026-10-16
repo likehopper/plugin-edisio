@@ -81,28 +81,21 @@ class edisio extends eqLogic {
 	}
 
 	public static function devicesParameters($_device = '') {
+		if ($_device != '') {
+			return edisio_device_definition(__DIR__ . '/../config/devices', $_device);
+		}
 		$return = array();
 		foreach (ls(__DIR__ . '/../config/devices', '*') as $dir) {
 			$path = __DIR__ . '/../config/devices/' . $dir;
 			if (!is_dir($path)) {
 				continue;
 			}
-			$files = ls($path, '*.json', false, array('files', 'quiet'));
-			foreach ($files as $file) {
-				try {
-					$content = file_get_contents($path . '/' . $file);
-					if (is_json($content)) {
-						$return += json_decode($content, true);
-					}
-				} catch (Exception $e) {
+			foreach (ls($path, '*.json', false, array('files', 'quiet')) as $file) {
+				$content = json_decode(file_get_contents($path . '/' . $file), true);
+				if (is_array($content)) {
+					$return += $content;
 				}
 			}
-		}
-		if (isset($_device) && $_device != '') {
-			if (isset($return[$_device])) {
-				return $return[$_device];
-			}
-			return array();
 		}
 		return $return;
 	}
