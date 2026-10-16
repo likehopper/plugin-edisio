@@ -36,8 +36,7 @@ class edisio extends eqLogic {
 			'message' => __('Nouveau module detecté', __FILE__),
 		));
 		sleep(2);
-		$banId = explode(' ', config::byKey('banRfxId', 'edisio'));
-		if (in_array($_def['id'], $banId)) {
+		if (edisio_is_banned($_def['id'], config::byKey('banEdisioId', 'edisio'))) {
 			event::add('jeedom::alert', array(
 				'level' => 'danger',
 				'page' => 'edisio',

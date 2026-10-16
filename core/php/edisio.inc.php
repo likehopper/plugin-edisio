@@ -63,3 +63,12 @@ function edisio_device_definition($_devicesDir, $_device) {
 	$content = file_exists($file) ? json_decode(file_get_contents($file), true) : null;
 	return (is_array($content) && isset($content[$_device]) && is_array($content[$_device])) ? $content[$_device] : array();
 }
+
+/**
+ * Vrai si l'identifiant figure dans la liste « Bannir les IDs » de la configuration
+ * (identifiants séparés par des espaces, des virgules ou des retours à la ligne, casse ignorée).
+ */
+function edisio_is_banned($_id, $_banList) {
+	$banned = preg_split('/[\s,;]+/', strtoupper(trim((string) $_banList)), -1, PREG_SPLIT_NO_EMPTY);
+	return in_array(strtoupper(trim((string) $_id)), $banned, true);
+}
