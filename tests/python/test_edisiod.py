@@ -242,6 +242,19 @@ class JeedomSerialTests(unittest.TestCase):
         link.port = port
         return link
 
+    def test_uses_pyserial_3_api(self):
+        port = MagicMock(spec=["in_waiting", "read", "reset_input_buffer", "reset_output_buffer"])
+        port.in_waiting = 0
+        link = self.serial(port)
+        self.assertIsNone(link.read())
+        port.in_waiting = 1
+        port.read.return_value = b"\x6c"
+        self.assertEqual(link.read(), b"\x6c")
+        link.flushInput()
+        link.flushOutput()
+        port.reset_input_buffer.assert_called_once_with()
+        port.reset_output_buffer.assert_called_once_with()
+
     def test_readbytes_reads_the_requested_length_at_once(self):
         port = MagicMock()
         port.read.return_value = b"\x01\x02\x03"

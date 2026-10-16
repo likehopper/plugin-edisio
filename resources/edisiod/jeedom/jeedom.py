@@ -202,7 +202,7 @@ class jeedom_serial():
         except serial.SerialException as e:
             logging.error("Error: Failed to connect on device %s. Details : %s", self.device, e)
             return False
-        if not self.port.isOpen():
+        if not self.port.is_open:
             self.port.open()
         self.flushOutput()
         self.flushInput()
@@ -224,14 +224,14 @@ class jeedom_serial():
 
     def flushOutput(self,):
         logging.info("flushOutput serial port ")
-        self.port.flushOutput()
+        self.port.reset_output_buffer()
 
     def flushInput(self):
         logging.info("flushInput serial port ")
-        self.port.flushInput()
+        self.port.reset_input_buffer()
 
     def read(self):
-        if self.port.inWaiting() != 0:
+        if self.port.in_waiting != 0:
             return self.port.read()
         return None
 
