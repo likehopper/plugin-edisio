@@ -3,7 +3,9 @@ import importlib
 import importlib.util
 import json
 import logging
+import os
 import sys
+import tempfile
 import types
 import unittest
 from pathlib import Path
@@ -102,6 +104,19 @@ class ArgumentTests(unittest.TestCase):
                                    "--callback", "http://127.0.0.1:80/plugins/edisio/core/php/jeeEdisio.php",
                                    "--apikey", "key", "--cycle", "0.5", "--pid", "/tmp/jeedom/edisio/deamon.pid"])
         self.assertEqual((args.device, args.socketport, args.apikey, args.cycle), ("/dev/ttyUSB0", 55006, "key", 0.5))
+
+    def test_apikey_file_is_read_then_deleted(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "apikey")
+            with open(path, "w") as handle:
+                handle.write("secret\n")
+            self.assertEqual(edisiod.parse_args(["--apikeyfile", path]).apikeyfile, path)
+            self.assertEqual(edisiod.read_apikey_file(path), "secret")
+            self.assertFalse(os.path.exists(path))
+
+    def test_missing_apikey_file_is_an_error(self):
+        with self.assertRaises(OSError):
+            edisiod.read_apikey_file("/nonexistent/edisio/apikey")
 
     def test_zero_cycle_is_kept(self):
         # cycle <= 0 makes jeedom_com send every change immediately
