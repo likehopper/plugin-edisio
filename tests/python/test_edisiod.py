@@ -297,9 +297,10 @@ class JeedomSerialTests(unittest.TestCase):
 class SerialWriteTests(DaemonTestCase):
     def test_valid_frame_is_written_three_times(self):
         fake = FakeSerial()
-        with patch.object(edisiod, "jeedom_serial", fake), patch.object(edisiod.time, "sleep"):
+        with patch.object(edisiod, "jeedom_serial", fake), patch.object(edisiod.time, "sleep") as sleep:
             edisiod.send_edisio(frame())
         self.assertEqual(fake.written, [packet(frame())] * 3)
+        self.assertEqual([call.args[0] for call in sleep.call_args_list], [0.14, 0.14, 0.02])
 
     def test_invalid_frame_is_not_written(self):
         fake = FakeSerial()
