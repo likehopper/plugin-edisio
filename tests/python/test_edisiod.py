@@ -91,6 +91,23 @@ class GlobalsTests(unittest.TestCase):
         self.assertEqual(fresh.KNOWN_DEVICES, {})
 
 
+class ArgumentTests(unittest.TestCase):
+    def test_defaults(self):
+        args = edisiod.parse_args([])
+        self.assertEqual((args.device, args.socketport, args.loglevel, args.cycle, args.pid),
+                         ("auto", 55005, "error", 0.3, "/tmp/edisiod.pid"))
+
+    def test_jeedom_command_line(self):
+        args = edisiod.parse_args(["--device", "/dev/ttyUSB0", "--loglevel", "debug", "--socketport", "55006",
+                                   "--callback", "http://127.0.0.1:80/plugins/edisio/core/php/jeeEdisio.php",
+                                   "--apikey", "key", "--cycle", "0.5", "--pid", "/tmp/jeedom/edisio/deamon.pid"])
+        self.assertEqual((args.device, args.socketport, args.apikey, args.cycle), ("/dev/ttyUSB0", 55006, "key", 0.5))
+
+    def test_zero_cycle_is_kept(self):
+        # cycle <= 0 makes jeedom_com send every change immediately
+        self.assertEqual(edisiod.parse_args(["--cycle", "0"]).cycle, 0)
+
+
 class FrameValidationTests(unittest.TestCase):
     def test_accepts_valid_frame_with_or_without_spaces(self):
         self.assertTrue(edisiod.test_edisio(frame()))
