@@ -236,16 +236,11 @@ class jeedom_serial():
         return None
 
     def readbytes(self, number):
-        buf = b''
-        for i in range(number):
-            try:
-                byte = self.port.read()
-            except IOError as e:
-                logging.error("Error: %s", e)
-            except OSError as e:
-                logging.error("Error: %s", e)
-            buf += byte
-        return buf
+        try:
+            return self.port.read(number)
+        except OSError as e:
+            logging.error("Error reading %d bytes: %s", number, e)
+            return b''
 
 
 JEEDOM_SOCKET_MESSAGE = Queue()
