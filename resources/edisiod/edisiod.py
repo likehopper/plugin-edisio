@@ -297,16 +297,10 @@ def read_socket():
                 globals.JEEDOM_COM.send_change_immediate(
                     {'include_mode': message['state']})
             elif message['cmd'] == 'send':
-                if isinstance(message['data'], list):
-                    for data in message['data']:
-                        logging.debug(data)
-                        send_edisio(data)
-                else:
-                    try:
-                        logging.debug(message['data'])
-                        send_edisio(message['data'])
-                    except Exception as e:
-                        logging.error('Send message command to edisio error : %s', e)
+                data_list = message['data'] if isinstance(message['data'], list) else [message['data']]
+                for data in data_list:
+                    logging.debug(data)
+                    send_edisio(data)
     except Exception as e:
         logging.error('Error on read socket : %s', e)
 
@@ -314,30 +308,18 @@ def read_socket():
 
 
 def send_edisio(message):
-    logging.debug("send_edisio : Incoming message (" + message + ")")
-    if test_edisio(message):
-        jeedom_serial.flushOutput()
-        jeedom_serial.flushInput()
-        logging.debug("------------------------------------------------")
-        logging.debug("Incoming message from socket")
-        logging.debug("Message\t\t\t= " + message)
-        logging.debug("Send\t\t\t= " +
-                      jeedom_utils.ByteToHex(binascii.unhexlify(message)))
-        logging.debug("Packet Length\t\t= " +
-                      jeedom_utils.dec2hex(binascii.unhexlify(message)[0]))
-        logging.debug("Write message to serial port : " +
-                      jeedom_utils.ByteToHex(binascii.unhexlify(message)))
-        logging.debug("Write 1")
-        jeedom_serial.write(binascii.unhexlify(message))
-        time.sleep(0.14)
-        logging.debug("Write 2")
-        jeedom_serial.write(binascii.unhexlify(message))
-        time.sleep(0.14)
-        logging.debug("Write 3")
-        jeedom_serial.write(binascii.unhexlify(message))
-        time.sleep(0.02)
-    else:
-        logging.error("Invalid message from socket : " + str(message))
+    logging.debug("send_edisio : Incoming message (%s)", message)
+    if not test_edisio(message):
+        logging.error("Invalid message from socket : %s", message)
+        return
+    raw = binascii.unhexlify(message)
+    jeedom_serial.flushOutput()
+    jeedom_serial.flushInput()
+    logging.debug("Send message = %s (%d bytes)", jeedom_utils.ByteToHex(raw), len(raw))
+    # Each frame is sent three times, as the Edisio transmitters do.
+    for delay in (0.14, 0.14, 0.02):
+        jeedom_serial.write(raw)
+        time.sleep(delay)
 
 # ----------------------------------------------------------------------------
 
