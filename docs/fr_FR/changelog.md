@@ -4,6 +4,20 @@
 >
 >Pour rappel s'il n'y a pas d'information sur la mise à jour, c'est que celle-ci concerne uniquement de la mise à jour de documentation, de traduction ou de texte
 
+# 16/10/2026
+
+- La liste « Bannir les IDs » de la configuration est enfin prise en compte (espaces, retours à la ligne ou virgules comme séparateurs)
+- Message d'erreur quand une commande ou l'inclusion échoue parce que le démon ne répond pas
+- Démon : une erreur de lecture série n'arrête plus le démon
+- Démon : correction de la lecture série en cas d'erreur (trame corrompue ou arrêt)
+- Démon : anti-doublon insensible aux changements d'heure système, compatibilité Python 3.12+ (Debian 13)
+- Variateur : niveau borné entre 0 et 100
+- Un module refusé à l'inclusion n'empêche plus le traitement des autres modules
+- Correction des images de repli (page Santé, équipements sans image)
+- Mise à jour du plugin sans erreur pour les équipements sans modèle
+- Moins d'accès disque à l'affichage des équipements et pendant le cron journalier
+- Ajout de tests automatiques (PHP et Python) et de la vérification continue GitHub
+
 # 21/03/2025
 
 - Correction d'un bug dans le démon (`AttributeError: 'dict' object has no attribute 'has_key'`)
