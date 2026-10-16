@@ -220,7 +220,9 @@ class edisio extends eqLogic {
 	}
 
 	public static function changeIncludeState($_state) {
-		self::sendToDeamon(array('apikey' => jeedom::getApiKey('edisio'), 'cmd' => 'include_mode', 'state' => $_state));
+		if (!self::sendToDeamon(array('apikey' => jeedom::getApiKey('edisio'), 'cmd' => 'include_mode', 'state' => $_state))) {
+			throw new Exception(__('Le démon Edisio ne répond pas, vérifiez qu\'il est démarré', __FILE__));
+		}
 	}
 
 	/*     * *********************Methode d'instance************************* */
@@ -372,7 +374,9 @@ class edisioCmd extends cmd {
 				break;
 		}
 		$values = explode('&&', trim($value, '$'));
-		edisio::sendToDeamon(array('apikey' => jeedom::getApiKey('edisio'), 'cmd' => 'send', 'data' => $values));
+		if (!edisio::sendToDeamon(array('apikey' => jeedom::getApiKey('edisio'), 'cmd' => 'send', 'data' => $values))) {
+			throw new Exception(__('Le démon Edisio ne répond pas, vérifiez qu\'il est démarré', __FILE__));
+		}
 	}
 	/*     * **********************Getteur Setteur*************************** */
 }
