@@ -215,6 +215,29 @@ class DimmerReleaseTests(DaemonTestCase):
         timer.reset.assert_called_once_with(1)
 
 
+class TimerResetTests(unittest.TestCase):
+    def test_runs_function_after_interval(self):
+        done = edisiod.Event()
+        timer = edisiod.TimerReset(0.01, done.set)
+        timer.start()
+        self.assertTrue(done.wait(2))
+        timer.join(2)
+
+    def test_cancel_prevents_the_call(self):
+        called = []
+        timer = edisiod.TimerReset(0.2, called.append, args=[1])
+        timer.start()
+        timer.cancel()
+        timer.join(2)
+        self.assertEqual(called, [])
+
+    def test_default_arguments_are_not_shared(self):
+        first = edisiod.TimerReset(1, print)
+        second = edisiod.TimerReset(1, print)
+        first.kwargs["x"] = 1
+        self.assertEqual(second.kwargs, {})
+
+
 class SerialReadTests(DaemonTestCase):
     def read(self, data):
         with patch.object(edisiod, "jeedom_serial", FakeSerial(data)), \
