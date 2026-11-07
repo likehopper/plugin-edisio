@@ -24,14 +24,13 @@ jobs:
 
   python:
     runs-on: ubuntu-latest
+    # setup-python has no 3.9 build for ubuntu-latest (26.04): use the official images
+    container: python:${{ matrix.python }}-slim
     strategy:
       matrix:
         # Debian 11 (3.9), Debian 12 (3.11), Debian 13 (3.13)
         python: ['3.9', '3.11', '3.13']
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python }}
       - name: Run Python tests
         run: python -W error::DeprecationWarning -m unittest discover -s tests/python -v
