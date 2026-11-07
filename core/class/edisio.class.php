@@ -195,7 +195,7 @@ class edisio extends eqLogic {
 	}
 
 	/**
-	 * Envoie une commande JSON au démon edisiod par son socket local.
+	 * Envoie une commande JSON au démon edisiod par son socket local (la clé API est ajoutée ici).
 	 * Retourne false (et journalise au niveau $_logLevel) si le démon est injoignable.
 	 */
 	public static function sendToDeamon($_data, $_logLevel = 'error') {
@@ -210,6 +210,7 @@ class edisio extends eqLogic {
 			socket_close($socket);
 			return false;
 		}
+		$_data['apikey'] = jeedom::getApiKey('edisio');
 		$message = json_encode($_data);
 		$result = @socket_write($socket, $message, strlen($message));
 		socket_close($socket);
@@ -221,7 +222,7 @@ class edisio extends eqLogic {
 	}
 
 	public static function changeIncludeState($_state) {
-		if (!self::sendToDeamon(array('apikey' => jeedom::getApiKey('edisio'), 'cmd' => 'include_mode', 'state' => $_state))) {
+		if (!self::sendToDeamon(array('cmd' => 'include_mode', 'state' => $_state))) {
 			throw new Exception(__('Le démon Edisio ne répond pas, vérifiez qu\'il est démarré', __FILE__));
 		}
 	}
@@ -300,22 +301,14 @@ class edisio extends eqLogic {
 	}
 
 	public function allowDevice() {
-		self::sendToDeamon(array(
-			'apikey' => jeedom::getApiKey('edisio'),
-			'cmd' => 'add',
-			'device' => array('id' => $this->getLogicalId()),
-		), 'warning');
+		self::sendToDeamon(array('cmd' => 'add', 'device' => array('id' => $this->getLogicalId())), 'warning');
 	}
 
 	public function disallowDevice() {
 		if ($this->getLogicalId() == '') {
 			return;
 		}
-		self::sendToDeamon(array(
-			'apikey' => jeedom::getApiKey('edisio'),
-			'cmd' => 'remove',
-			'device' => array('id' => $this->getLogicalId()),
-		), 'warning');
+		self::sendToDeamon(array('cmd' => 'remove', 'device' => array('id' => $this->getLogicalId())), 'warning');
 	}
 
 	public function applyModuleConfiguration() {
@@ -354,7 +347,7 @@ class edisioCmd extends cmd {
 		$eqLogic = $this->getEqLogic();
 		$logicalId = ($this->getConfiguration('id') != '') ? $this->getConfiguration('id') : $eqLogic->getLogicalId();
 		$values = edisio_build_frames($this->getLogicalId(), $logicalId, $this->getConfiguration('group', '01'), $this->getSubType(), $_options);
-		if (!edisio::sendToDeamon(array('apikey' => jeedom::getApiKey('edisio'), 'cmd' => 'send', 'data' => $values))) {
+		if (!edisio::sendToDeamon(array('cmd' => 'send', 'data' => $values))) {
 			throw new Exception(__('Le démon Edisio ne répond pas, vérifiez qu\'il est démarré', __FILE__));
 		}
 	}
