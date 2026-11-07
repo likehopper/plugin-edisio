@@ -30,7 +30,7 @@ function edisio_update() {
 	}
 	foreach (eqLogic::byType('edisio') as $eqLogic) {
 		$device = edisio::devicesParameters($eqLogic->getConfiguration('device'));
-		if (!isset($device['commands']) || !is_array($device['commands'])) {
+		if (!is_array($device['commands'] ?? null)) {
 			continue;
 		}
 		foreach ($device['commands'] as $command) {
